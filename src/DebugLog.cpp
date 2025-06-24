@@ -1,9 +1,10 @@
 #include <DebugLog.h>
 #include <filesystem>
-#include <iostream>
-
-#include <fmt/ostream.h>
-#include <fmt/format.h>
+#include <ostream>
+#include <fstream>
+#include <iomanip>
+#include <sstream>
+#include <ctime>
 #include <fmt/color.h>
 
 std::once_flag Debug::m_initFlag;
