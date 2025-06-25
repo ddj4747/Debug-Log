@@ -56,7 +56,9 @@ void Debug::Log(const char *message, const LogType type) {
 
     std::lock_guard<std::mutex> lock(m_mutex);
     const std::string timeStamp = GetTimestamp();
+#ifndef DISABLE_CONSOLE_LOGGING
     const std::string formatted = fmt::format("[{:<8}{}] {}", LogTypeToString(type), timeStamp, message);
+#endif // !DISABLE_CONSOLE_LOGGING
 
     switch (type) {
         case LogType::DEFAULT:
