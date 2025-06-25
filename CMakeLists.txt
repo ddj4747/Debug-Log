@@ -13,7 +13,7 @@ add_library(Debug-Log STATIC ${SRC} ${INC})
 target_include_directories(Debug-Log PUBLIC inc/)
 target_link_libraries(Debug-Log PRIVATE ext)
 
-if (DEBUG_LOG_DISABLE_LOGS OR (DEBUG_LOG_DISABLE_CONSOLE_LOGGING AND DEBUG_LOG_DISABLE_FILE_LOGGING))
+if (DEBUG_LOG_DISABLE_LOGGING OR (DEBUG_LOG_DISABLE_CONSOLE_LOGGING AND DEBUG_LOG_DISABLE_FILE_LOGGING))
     add_compile_definitions(
             DISABLE_LOGGING
             DISABLE_CONSOLE_LOGGING
