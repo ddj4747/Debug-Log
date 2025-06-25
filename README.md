@@ -1,5 +1,4 @@
 # Debug Log
-
 A lightweight, thread-safe logging utility for C++ that supports colored console output, timestamped log entries, and structured file logging. Ideal for both development and production environments.
 
 ## 🔧 Build Instructions
