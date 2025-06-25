@@ -5,10 +5,7 @@
 #include <iomanip>
 #include <sstream>
 #include <ctime>
-
-#ifndef DISABLE_CONSOLE_LOGGING
 #include <fmt/color.h>
-#endif
 
 std::once_flag Debug::m_initFlag;
 std::mutex Debug::m_mutex;
@@ -56,9 +53,7 @@ void Debug::Log(const char *message, const LogType type) {
 
     std::lock_guard<std::mutex> lock(m_mutex);
     const std::string timeStamp = GetTimestamp();
-#ifndef DISABLE_CONSOLE_LOGGING
     const std::string formatted = fmt::format("[{:<8}{}] {}", LogTypeToString(type), timeStamp, message);
-#endif // !DISABLE_CONSOLE_LOGGING
 
     switch (type) {
         case LogType::DEFAULT:
