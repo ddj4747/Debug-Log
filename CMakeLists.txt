@@ -14,15 +14,17 @@ target_include_directories(Debug-Log PUBLIC inc/)
 target_link_libraries(Debug-Log PRIVATE ext)
 
 if (DEBUG_LOG_DISABLE_LOGS OR (DEBUG_LOG_DISABLE_CONSOLE_LOGS AND DEBUG_LOG_DISABLE_FILE_LOGS))
-    target_compile_definitions(Debug-Log PRIVATE DISABLE_LOGGING)
-    target_compile_definitions(Debug-Log PRIVATE DISABLE_CONSOLE_LOGGING)
-    target_compile_definitions(Debug-Log PRIVATE DISABLE_FILE_LOGGING)
+    add_compile_definitions(
+            DISABLE_LOGGING
+            DISABLE_CONSOLE_LOGGING
+            DISABLE_FILE_LOGGING
+    )
 else ()
     if (DEBUG_LOG_DISABLE_CONSOLE_LOGS)
-        target_compile_definitions(Debug-Log PRIVATE DISABLE_CONSOLE_LOGGING)
+        add_compile_definitions(DISABLE_CONSOLE_LOGGING)
     endif()
 
     if (DEBUG_LOG_DISABLE_FILE_LOGS)
-        target_compile_definitions(Debug-Log PRIVATE DISABLE_FILE_LOGGING)
+        add_compile_definitions(DISABLE_FILE_LOGGING)
     endif ()
 endif ()
