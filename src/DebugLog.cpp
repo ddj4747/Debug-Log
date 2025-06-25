@@ -5,7 +5,10 @@
 #include <iomanip>
 #include <sstream>
 #include <ctime>
+
+#ifndef DISABLE_CONSOLE_LOGGING
 #include <fmt/color.h>
+#endif
 
 std::once_flag Debug::m_initFlag;
 std::mutex Debug::m_mutex;
@@ -46,6 +49,7 @@ const char* Debug::LogTypeToString(const LogType type) {
 }
 
 void Debug::Log(const char *message, const LogType type) {
+#ifndef DISABLE_LOGGING
     std::call_once(m_initFlag, []() {
         Init();
     });
@@ -56,22 +60,35 @@ void Debug::Log(const char *message, const LogType type) {
 
     switch (type) {
         case LogType::DEFAULT:
+#ifndef DISABLE_CONSOLE_LOGGING
             fmt::print("{}\n", formatted);
+#endif // !DISABLE_CONSOLE_LOGGING
+#ifndef DISABLE_FILE_LOGGING
             m_fileLogStream << formatted << '\n';
+#endif // !DISABLE_FILE_LOGGING
             break;
 
         case LogType::WARNING:
+#ifndef DISABLE_CONSOLE_LOGGING
             fmt::print(fg(fmt::color::yellow), "{}\n", formatted);
+#endif // !DISABLE_CONSOLE_LOGGING
+#ifndef DISABLE_FILE_LOGGING
             m_fileLogStream << formatted << '\n';
             m_fileLogErrorStream << formatted << '\n';
+#endif // !DISABLE_FILE_LOGGING
             break;
 
         case LogType::ERROR:
+#ifndef DISABLE_CONSOLE_LOGGING
             fmt::print(fg(fmt::color::red), "{}\n", formatted);
+#endif // !DISABLE_CONSOLE_LOGGING
+#ifndef DISABLE_FILE_LOGGING
             m_fileLogStream << formatted << '\n';
             m_fileLogErrorStream << formatted << '\n';
+#endif // !DISABLE_FILE_LOGGING
             break;
     }
+#endif // !DISABLE_LOGGING
 }
 
 std::string Debug::GetTimestamp() {
