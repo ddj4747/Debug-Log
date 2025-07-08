@@ -18,9 +18,9 @@ public:
 
 private:
     enum class DebugLogType_ {
-        DEFAULT,
-        WARNING,
-        ERROR
+        DEFAULT_DEBUG_LOG,
+        WARNING_DEBUG_LOG,
+        ERROR_DEBUG_LOG
     };
 
     static const char* LogTypeToString(DebugLogType_ type);
