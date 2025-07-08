@@ -13,39 +13,39 @@ std::ofstream Debug::m_fileLogStream;
 std::ofstream Debug::m_fileLogErrorStream;
 
 void Debug::Log(const char *message) {
-    Log(message, LogType::DEFAULT);
+    Log(message, DebugLogType_::DEFAULT);
 }
 
 void Debug::Log(const std::string &message) {
-    Log(message.c_str(), LogType::DEFAULT);
+    Log(message.c_str(), DebugLogType_::DEFAULT);
 }
 
 void Debug::LogWarning(const char *message) {
-    Log(message, LogType::WARNING);
+    Log(message, DebugLogType_::WARNING);
 }
 
 void Debug::LogWarning(const std::string &message) {
-    Log(message.c_str(), LogType::WARNING);
+    Log(message.c_str(), DebugLogType_::WARNING);
 }
 
 void Debug::LogError(const char *message) {
-    Log(message, LogType::ERROR);
+    Log(message, DebugLogType_::ERROR);
 }
 
 void Debug::LogError(const std::string &message) {
-    Log(message.c_str(), LogType::ERROR);
+    Log(message.c_str(), DebugLogType_::ERROR);
 }
 
-const char* Debug::LogTypeToString(const LogType type) {
+const char* Debug::LogTypeToString(const DebugLogType_ type) {
     switch (type) {
-        case LogType::DEFAULT: return "LOG";
-        case LogType::WARNING: return "WARNING";
-        case LogType::ERROR:   return "ERROR";
+        case DebugLogType_::DEFAULT: return "LOG";
+        case DebugLogType_::WARNING: return "WARNING";
+        case DebugLogType_::ERROR:   return "ERROR";
     }
     return "UNKNOWN";
 }
 
-void Debug::Log(const char *message, const LogType type) {
+void Debug::Log(const char *message, const DebugLogType_ type) {
 #ifndef DISABLE_LOGGING
     std::call_once(m_initFlag, []() {
         Init();
@@ -56,7 +56,7 @@ void Debug::Log(const char *message, const LogType type) {
     const std::string formatted = fmt::format("[{:<8}{}] {}", LogTypeToString(type), timeStamp, message);
 
     switch (type) {
-        case LogType::DEFAULT:
+        case DebugLogType_::DEFAULT:
 #ifndef DISABLE_CONSOLE_LOGGING
             fmt::print("{}\n", formatted);
 #endif // !DISABLE_CONSOLE_LOGGING
@@ -65,7 +65,7 @@ void Debug::Log(const char *message, const LogType type) {
 #endif // !DISABLE_FILE_LOGGING
             break;
 
-        case LogType::WARNING:
+        case DebugLogType_::WARNING:
 #ifndef DISABLE_CONSOLE_LOGGING
             fmt::print(fg(fmt::color::yellow), "{}\n", formatted);
 #endif // !DISABLE_CONSOLE_LOGGING
@@ -75,7 +75,7 @@ void Debug::Log(const char *message, const LogType type) {
 #endif // !DISABLE_FILE_LOGGING
             break;
 
-        case LogType::ERROR:
+        case DebugLogType_::ERROR:
 #ifndef DISABLE_CONSOLE_LOGGING
             fmt::print(fg(fmt::color::red), "{}\n", formatted);
 #endif // !DISABLE_CONSOLE_LOGGING

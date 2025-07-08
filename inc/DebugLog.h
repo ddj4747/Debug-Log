@@ -17,14 +17,14 @@ public:
     static void LogError(const std::string& message);
 
 private:
-    enum class LogType {
+    enum class DebugLogType_ {
         DEFAULT,
         WARNING,
         ERROR
     };
 
-    static const char* LogTypeToString(LogType type);
-    static void Log(const char* message, LogType type);
+    static const char* LogTypeToString(DebugLogType_ type);
+    static void Log(const char* message, DebugLogType_ type);
     static void Init();
     static std::string GetTimestamp();
 
