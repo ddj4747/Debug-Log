@@ -9,14 +9,14 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 file(GLOB_RECURSE SRC src/*)
 file(GLOB_RECURSE INC inc/*)
 
-find_package(Boost COMPONENTS stacktrace_windbg)
+find_package(Boost)
 
 add_subdirectory(ext)
 add_library(Debug-Log STATIC ${SRC} ${INC})
 target_include_directories(Debug-Log PUBLIC inc/)
 
-if (Boost_FOUND AND Boost_STACKTRACE_WINDBG_FOUND AND NOT DEBUG_LOG_DISABLE_STACKTRACE)
-    target_link_libraries(Debug-Log PRIVATE Boost::stacktrace_windbg Debug-Log-EXT-Interface)
+if (Boost_FOUND AND NOT DEBUG_LOG_DISABLE_STACKTRACE)
+    target_link_libraries(Debug-Log PRIVATE BoostDebug-Log-EXT-Interface)
 else()
     add_compile_definitions(DISABLE_LOGGING_STACKTRACE)
     target_link_libraries(Debug-Log PRIVATE Debug-Log-EXT-Interface)
