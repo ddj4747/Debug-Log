@@ -5,6 +5,10 @@
 #include <iomanip>
 #include <sstream>
 #include <ctime>
+
+#ifndef DISABLE_LOGGING_STACKTRACE
+#include <boost/stacktrace.hpp>
+#endif
 #include <fmt/color.h>
 
 std::once_flag Debug::m_initFlag;
@@ -53,37 +57,48 @@ void Debug::Log(const char *message, const DebugLogType_ type) {
 
     std::lock_guard<std::mutex> lock(m_mutex);
     const std::string timeStamp = GetTimestamp();
+
+#ifndef DISABLE_LOGGING_STACKTRACE
+    std::string formatted;
+    if (type != DebugLogType_::DEFAULT_DEBUG_LOG) {
+        const boost::stacktrace::stacktrace stacktrace(4, -1);
+        formatted = fmt::format("[{:<8}{}] {}\nStacktrace ( \n{})", LogTypeToString(type), timeStamp, message,  boost::stacktrace::to_string(stacktrace));
+    } else {
+        formatted = fmt::format("[{:<8}{}] {}", LogTypeToString(type), timeStamp, message);
+    }
+#else
     const std::string formatted = fmt::format("[{:<8}{}] {}", LogTypeToString(type), timeStamp, message);
+#endif
 
     switch (type) {
-        case DebugLogType_::DEFAULT_DEBUG_LOG:
+    case DebugLogType_::DEFAULT_DEBUG_LOG:
 #ifndef DISABLE_CONSOLE_LOGGING
-            fmt::print("{}\n", formatted);
+        fmt::print("{}\n", formatted);
 #endif // !DISABLE_CONSOLE_LOGGING
 #ifndef DISABLE_FILE_LOGGING
-            m_fileLogStream << formatted << '\n';
+        m_fileLogStream << formatted << '\n';
 #endif // !DISABLE_FILE_LOGGING
-            break;
+        break;
 
-        case DebugLogType_::WARNING_DEBUG_LOG:
+    case DebugLogType_::WARNING_DEBUG_LOG:
 #ifndef DISABLE_CONSOLE_LOGGING
-            fmt::print(fg(fmt::color::yellow), "{}\n", formatted);
+        fmt::print(fg(fmt::color::yellow), "{}\n", formatted);
 #endif // !DISABLE_CONSOLE_LOGGING
 #ifndef DISABLE_FILE_LOGGING
-            m_fileLogStream << formatted << '\n';
-            m_fileLogErrorStream << formatted << '\n';
+        m_fileLogStream << formatted << '\n';
+        m_fileLogErrorStream << formatted << '\n';
 #endif // !DISABLE_FILE_LOGGING
-            break;
+        break;
 
-        case DebugLogType_::ERROR_DEBUG_LOG:
+    case DebugLogType_::ERROR_DEBUG_LOG:
 #ifndef DISABLE_CONSOLE_LOGGING
-            fmt::print(fg(fmt::color::red), "{}\n", formatted);
+        fmt::print(fg(fmt::color::red), "{}\n", formatted);
 #endif // !DISABLE_CONSOLE_LOGGING
 #ifndef DISABLE_FILE_LOGGING
-            m_fileLogStream << formatted << '\n';
-            m_fileLogErrorStream << formatted << '\n';
+        m_fileLogStream << formatted << '\n';
+        m_fileLogErrorStream << formatted << '\n';
 #endif // !DISABLE_FILE_LOGGING
-            break;
+        break;
     }
 #endif // !DISABLE_LOGGING
 }
