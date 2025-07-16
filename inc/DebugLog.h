@@ -17,6 +17,16 @@
 class Debug {
 public:
 
+    static void Log(std::string_view value) {
+        Log(std::string(value), DebugLogType_::DEFAULT_DEBUG_LOG);
+    }
+    static void LogWarning(std::string_view value) {
+        Log(std::string(value), DebugLogType_::WARNING_DEBUG_LOG);
+    }
+    static void LogError(std::string_view value) {
+        Log(std::string(value), DebugLogType_::ERROR_DEBUG_LOG);
+    }
+
     template <typename T, typename = std::enable_if_t<!std::is_convertible_v<T, std::string_view>>>
     static void Log(const T& value) {
         Log(fmt::format("{}", value), DebugLogType_::DEFAULT_DEBUG_LOG);
