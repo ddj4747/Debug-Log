@@ -49,8 +49,6 @@ public:
     }
 #endif
 
-    static NO_DISCARD Debug& CreateInstance();
-
 private:
     enum class DebugLogType_ {
         DEFAULT_DEBUG_LOG,
