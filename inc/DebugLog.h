@@ -8,6 +8,7 @@
 #include <utility>
 #include <type_traits>
 #include <fmt/core.h>
+#include <string_view>
 
 #ifndef NO_DISCARD
 #define NO_DISCARD [[nodiscard]]
@@ -15,6 +16,21 @@
 
 class Debug {
 public:
+
+    template <typename T, typename = std::enable_if_t<!std::is_convertible_v<T, std::string_view>>>
+    static void Log(const T& value) {
+        Log(fmt::format("{}", value), DebugLogType_::DEFAULT_DEBUG_LOG);
+    }
+
+    template <typename T, typename = std::enable_if_t<!std::is_convertible_v<T, std::string_view>>>
+    static void LogWarning(const T& value) {
+        Log(fmt::format("{}", value), DebugLogType_::WARNING_DEBUG_LOG);
+    }
+
+    template <typename T, typename = std::enable_if_t<!std::is_convertible_v<T, std::string_view>>>
+    static void LogError(const T& value) {
+        Log(fmt::format("{}", value), DebugLogType_::ERROR_DEBUG_LOG);
+    }
 
 #if (__cplusplus >= 202002L) || (defined(_MSVC_LANG) && _MSVC_LANG >= 202002L)
     template <typename... Args>
@@ -61,11 +77,9 @@ private:
     static void Init();
     static std::string GetTimestamp();
 
-    static Debug* m_instance;
-
-    std::mutex m_mutex;
-    std::ofstream m_fileLogStream;
-    std::ofstream m_fileLogErrorStream;
+    static std::mutex m_mutex;
+    static std::ofstream m_fileLogStream;
+    static std::ofstream m_fileLogErrorStream;
     static std::once_flag m_initFlag;
 };
 
