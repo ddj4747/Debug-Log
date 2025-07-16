@@ -1,129 +1,159 @@
-# 📄 Debug-Log Documentation
+# Debug-Log
+
+Debug-Log is a lightweight C++ logging utility with printf-style formatting, automatic file logging, and optional stack traces using the Boost library.
+
+---
 
 ## ✅ Getting Started
+
 To use Debug-Log, simply include the header:
-```c++
+
+```cpp
 #include <DebugLog.h>
 ```
+
+---
 
 ## 📁 Directory Structure
 
 Logs are saved to the following locations:
-``` shell
-logs/
-├── all/ # All log messages
-└── errors/ # Warning and error messages
-```
-Each run creates a new log file named with the current timestamp (e.g., ```2025-06-24_12-34-56.log```).
 
+```
+logs/
+├── all/     # All log messages
+└── errors/  # Warning and error messages
+```
+
+Each run creates a new log file named with the current timestamp (e.g., `2025-06-24_12-34-56.log`).
+
+---
 
 ## 📝 Logging Functions
 
-### Debug::Log()
+Debug-Log uses the `{fmt}` library for printf-style formatting.
+
+### `Debug::Log()`
+
 Logs a standard informational message.
-Messages are saved to: ```logs/all/<timestamp>.log```.
 
-```c++
+**Saved to:** `logs/all/<timestamp>.log`
+
+```cpp
 #include <DebugLog.h>
 #include <string>
 
 int main() {
     const char* message1 = "Message1";
     std::string message2 = "Message2";
-    
-    Debug::Log(message1);
-    Debug::Log(message2);
-    
+    int value = 42;
+
+    Debug::Log("This is a standard log message.");
+    Debug::Log("This is message1: {}", message1);
+    Debug::Log("This is message2: {}, and a number: {}", message2, value);
+
     return 0;
 }
 ```
 
-Output: 
-```shell
-$ [LOG     2025-06-24_12-34-56] Message1
-$ [LOG     2025-06-24_12-34-56] Message2
+**Output:**
+```
+[LOG 2025-06-24_12-34-56] This is a standard log message.
+[LOG 2025-06-24_12-34-56] This is message1: Message1
+[LOG 2025-06-24_12-34-56] This is message2: Message2, and a number: 42
 ```
 
-### ⚠️ Debug::LogWarning()
-Logs a warning about a non-critical issue. Messages are saved to:
-- ```logs/all/<timestamp>.log```
-- ```logs/errors/<timestamp>.log```
+---
 
+### ⚠️ `Debug::LogWarning()`
 
-```c++
+Logs a warning about a non-critical issue and includes a stack trace.
+
+**Saved to:**
+- `logs/all/<timestamp>.log`
+- `logs/errors/<timestamp>.log`
+
+```cpp
 #include <DebugLog.h>
 #include <string>
 
+void someFunction() {
+    Debug::LogWarning("Something unexpected happened here.");
+}
+
 int main() {
-    const char* message1 = "Message1";
-    std::string message2 = "Message2";
-    
-    Debug::LogWarning(message1);
-    Debug::LogWarning(message2);
-    
+    someFunction();
     return 0;
 }
 ```
 
-Output:
-```shell
-$ [WARNING 2025-06-24_12-34-56] Message1
-$ [WARNING 2025-06-24_12-34-56] Message2
+**Output:**
+```
+[WARNING 2025-06-24_12-34-56] Something unexpected happened here.
+Stacktrace (
+  0# someFunction() at /path/to/your/project/main.cpp:8
+  1# main at /path/to/your/project/main.cpp:12
+)
 ```
 
-### ❌ Debug::LogError()
-Logs a critical error message. Messages are saved to:
-- ```logs/all/<timestamp>.log```
-- ```logs/errors/<timestamp>.log```
+---
 
-```c++
+### ❌ `Debug::LogError()`
+
+Logs a critical error message and includes a stack trace.
+
+**Saved to:**
+- `logs/all/<timestamp>.log`
+- `logs/errors/<timestamp>.log`
+
+```cpp
 #include <DebugLog.h>
 #include <string>
 
+void criticalOperation() {
+    Debug::LogError("A critical error occurred!");
+}
+
 int main() {
-    const char* message1 = "Message1";
-    std::string message2 = "Message2";
-    
-    Debug::LogError(message1);
-    Debug::LogError(message2);
-    
+    criticalOperation();
     return 0;
 }
 ```
 
-Output:
-```shell
-$ [ERROR   2025-06-24_12-34-56] Message1
-$ [ERROR   2025-06-24_12-34-56] Message2
+**Output:**
 ```
+[ERROR 2025-06-24_12-34-56] A critical error occurred!
+Stacktrace (
+  0# criticalOperation() at /path/to/your/project/main.cpp:8
+  1# main at /path/to/your/project/main.cpp:12
+)
+```
+
+---
 
 ## ⚙️ CMake Configuration
-DebugLog supports several CMake options for customizing logging behavior:
 
-### 🔇 Disable All Logging
-Disables all logging functionality (no output at all):
-```cmake
-set(DEBUG_LOG_DISABLE_LOGGING ON)
-```
+DebugLog supports several CMake options to customize logging behavior:
 
-### 🖥️ Disable Console Logging
-Prevents logs from being printed to the console:
+| Option | Description |
+|--------|-------------|
+| `DEBUG_LOG_DISABLE_LOGGING` | Disables all logging functionality entirely. |
+| `DEBUG_LOG_DISABLE_CONSOLE_LOGGING` | Prevents logs from being printed to the console. |
+| `DEBUG_LOG_DISABLE_FILE_LOGGING` | Prevents logs from being written to log files. |
+| `DEBUG_LOG_DISABLE_STACKTRACE` | Disables stack trace generation for warnings and errors. |
+
+To set an option, add to your `CMakeLists.txt`:
+
 ```cmake
 set(DEBUG_LOG_DISABLE_CONSOLE_LOGGING ON)
 ```
 
-### 📁 Disable File Logging
-Prevents logs from being written to a log file:
-```cmake
-set(DEBUG_LOG_DISABLE_FILE_LOGGING ON)
-```
-
+---
 
 ## 📌 Notes
-- Timestamps follow the format: ```YYYY-MM-DD_HH-MM-SS```.
-- logging functions accept both ```const char*``` and ```std::string```.
-- Ensure logs/ is writable by the application.
+
+- Stack traces for `Debug::LogWarning()` and `Debug::LogError()` require the Boost library. If Boost is not found, stack trace generation is disabled.
+- Timestamps follow the format: `YYYY-MM-DD_HH-MM-SS`.
+- Logging functions accept both `const char*` and `std::string`, and support `{fmt}`-style format strings.
+- Ensure the `logs/` directory is writable by the application.
 - Log file creation is deferred until the first log call.
-- If file opening fails, the program will throw an exception.
-- All messages are saved in:```logs/all/<timestamp>.log```
-- Warnings and errors are also saved in: ```logs/errors/<timestamp>.log```
+- If opening a log file fails, the program will throw a `std::runtime_error`.
