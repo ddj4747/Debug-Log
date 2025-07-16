@@ -23,10 +23,10 @@ add_library(Debug-Log STATIC ${SRC} ${INC})
 target_include_directories(Debug-Log PUBLIC inc/)
 
 if (Boost_FOUND AND NOT DEBUG_LOG_DISABLE_STACKTRACE)
-    target_link_libraries(Debug-Log PRIVATE Boost::boost fmt::fmt)
+    target_link_libraries(Debug-Log PUBLIC Boost::boost fmt::fmt)
 else()
     add_compile_definitions(DISABLE_LOGGING_STACKTRACE)
-    target_link_libraries(Debug-Log PRIVATE fmt::fmt)
+    target_link_libraries(Debug-Log PUBLIC fmt::fmt)
 endif()
 
 if (DEBUG_LOG_DISABLE_LOGGING OR (DEBUG_LOG_DISABLE_CONSOLE_LOGGING AND DEBUG_LOG_DISABLE_FILE_LOGGING))
