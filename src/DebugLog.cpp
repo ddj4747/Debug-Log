@@ -11,6 +11,9 @@
 #endif
 #include <fmt/color.h>
 
+std::mutex Debug::m_mutex{};
+std::ofstream Debug::m_fileLogStream{};
+std::ofstream Debug::m_fileLogErrorStream{};
 std::once_flag Debug::m_initFlag{};
 
 const char* Debug::LogTypeToString(const DebugLogType_ type) {
@@ -28,7 +31,7 @@ void Debug::Log(const std::string& message, const DebugLogType_ type) {
         Init();
     });
 
-    std::lock_guard<std::mutex> lock(m_instance->m_mutex);
+    std::lock_guard<std::mutex> lock(m_mutex);
     const std::string timeStamp = GetTimestamp();
 
 #ifndef DISABLE_LOGGING_STACKTRACE
@@ -49,7 +52,7 @@ void Debug::Log(const std::string& message, const DebugLogType_ type) {
         fmt::print("{}\n", formatted);
 #endif // !DISABLE_CONSOLE_LOGGING
 #ifndef DISABLE_FILE_LOGGING
-        m_instance->m_fileLogStream << formatted << '\n';
+        m_fileLogStream << formatted << '\n';
 #endif // !DISABLE_FILE_LOGGING
         break;
 
@@ -58,8 +61,8 @@ void Debug::Log(const std::string& message, const DebugLogType_ type) {
         fmt::print(fg(fmt::color::yellow), "{}\n", formatted);
 #endif // !DISABLE_CONSOLE_LOGGING
 #ifndef DISABLE_FILE_LOGGING
-        m_instance->m_fileLogStream << formatted << '\n';
-        m_instance->m_fileLogErrorStream << formatted << '\n';
+        m_fileLogStream << formatted << '\n';
+        m_fileLogErrorStream << formatted << '\n';
 #endif // !DISABLE_FILE_LOGGING
         break;
 
@@ -68,8 +71,8 @@ void Debug::Log(const std::string& message, const DebugLogType_ type) {
         fmt::print(fg(fmt::color::red), "{}\n", formatted);
 #endif // !DISABLE_CONSOLE_LOGGING
 #ifndef DISABLE_FILE_LOGGING
-        m_instance->m_fileLogStream << formatted << '\n';
-        m_instance->m_fileLogErrorStream << formatted << '\n';
+        m_fileLogStream << formatted << '\n';
+        m_fileLogErrorStream << formatted << '\n';
 #endif // !DISABLE_FILE_LOGGING
         break;
     }
@@ -93,10 +96,6 @@ std::string Debug::GetTimestamp() {
 }
 
 void Debug::Init() {
-    if (m_instance == nullptr) {
-        m_instance = new Debug();
-    }
-
     if (!std::filesystem::is_directory(std::filesystem::path("logs/"))) {
         std::filesystem::create_directory(std::filesystem::path("logs/"));
     }
@@ -113,10 +112,10 @@ void Debug::Init() {
     const std::filesystem::path allLogPath("logs/all/" + fileName);
     const std::filesystem::path errorLogPath("logs/errors/" + fileName);
 
-    m_instance->m_fileLogStream.open(allLogPath, std::ios::out | std::ios::app);
-    m_instance->m_fileLogErrorStream.open(errorLogPath, std::ios::out | std::ios::app);
+    m_fileLogStream.open(allLogPath, std::ios::out | std::ios::app);
+    m_fileLogErrorStream.open(errorLogPath, std::ios::out | std::ios::app);
 
-    if (!m_instance->m_fileLogStream.is_open() || !m_instance->m_fileLogErrorStream.is_open()) {
+    if (!m_fileLogStream.is_open() || !m_fileLogErrorStream.is_open()) {
         throw std::runtime_error("Failed to open log files.");
     }
 }
