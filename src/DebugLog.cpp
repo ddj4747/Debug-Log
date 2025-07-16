@@ -25,7 +25,7 @@ const char* Debug::LogTypeToString(const DebugLogType_ type) {
     return "UNKNOWN";
 }
 
-void Debug::Log(const std::string& message, const DebugLogType_ type) {
+void Debug::LogI(const std::string& message, const DebugLogType_ type) {
 #ifndef DISABLE_LOGGING
     std::call_once(m_initFlag, []() {
         Init();
