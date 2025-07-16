@@ -49,7 +49,6 @@ public:
     }
 #endif
 
-
 private:
     enum class DebugLogType_ {
         DEFAULT_DEBUG_LOG,
@@ -57,7 +56,6 @@ private:
         ERROR_DEBUG_LOG
     };
 
-    static NO_DISCARD Debug& CreateInstance();
     static const char* LogTypeToString(DebugLogType_ type);
     static void Log(const std::string& message, DebugLogType_ type);
     static void Init();
