@@ -13,12 +13,6 @@
 
 std::once_flag Debug::m_initFlag{};
 
-NO_DISCARD Debug& Debug::CreateInstance() {
-    static Debug instance;
-    m_instance = &instance;
-    return instance;
-}
-
 const char* Debug::LogTypeToString(const DebugLogType_ type) {
     switch (type) {
         case DebugLogType_::DEFAULT_DEBUG_LOG: return "LOG";
