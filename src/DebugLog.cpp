@@ -9,7 +9,9 @@
 #ifndef DISABLE_LOGGING_STACKTRACE
 #include <boost/stacktrace.hpp>
 #endif
+
 #include <fmt/color.h>
+#include <fmt/ostream.h>
 
 std::mutex Debug::m_mutex{};
 std::ofstream Debug::m_fileLogStream{};
