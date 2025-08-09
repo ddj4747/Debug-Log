@@ -13,11 +13,26 @@ find_package(Boost)
 include(FetchContent)
 
 FetchContent_Declare(
+        google-test
+        GIT_REPOSITORY https://github.com/google/googletest.git
+        GIT_TAG main
+)
+
+FetchContent_Declare(
         fmt
         GIT_REPOSITORY https://github.com/fmtlib/fmt.git
         GIT_TAG        11.2.0
 )
+
+FetchContent_Declare(
+        google-benchmark
+        GIT_REPOSITORY https://github.com/google/benchmark.git
+        GIT_TAG main
+)
+
 FetchContent_MakeAvailable(fmt)
+FetchContent_MakeAvailable(google-test)
+FetchContent_MakeAvailable(google-benchmark)
 
 add_library(Debug-Log STATIC ${SRC} ${INC})
 target_include_directories(Debug-Log PUBLIC inc/)
@@ -44,3 +59,13 @@ else ()
         add_compile_definitions(DISABLE_FILE_LOGGING)
     endif ()
 endif ()
+
+set(DEBUG_LOG_TESTS_ENABLED ON)
+
+if (DEBUG_LOG_TESTS_ENABLED)
+    add_executable(DebugLogBenchmark
+            benchmark/log_benchmark.cpp
+    )
+
+    target_link_libraries(DebugLogBenchmark PRIVATE Debug-Log benchmark::benchmark)
+endif()

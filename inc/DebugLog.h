@@ -17,13 +17,13 @@
 class Debug {
 public:
 
-    static void Log(std::string_view value) {
+    static void Log(const std::string_view value) {
         LogI(std::string(value), DebugLogType_::DEFAULT_DEBUG_LOG);
     }
-    static void LogWarning(std::string_view value) {
+    static void LogWarning(const std::string_view value) {
         LogI(std::string(value), DebugLogType_::WARNING_DEBUG_LOG);
     }
-    static void LogError(std::string_view value) {
+    static void LogError(const std::string_view value) {
         LogI(std::string(value), DebugLogType_::ERROR_DEBUG_LOG);
     }
 
