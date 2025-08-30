@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 #include <fstream>
 #include <filesystem>
+#include <thread>
 #include <DebugLog.h>
 
 namespace fs = std::filesystem;
