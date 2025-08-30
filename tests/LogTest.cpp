@@ -22,7 +22,7 @@ protected:
     }
 
     static std::string ReadFile(const fs::path& file) {
-        std::ifstream in(file);
+        const std::ifstream in(file);
         std::stringstream buffer;
         buffer << in.rdbuf();
         return buffer.str();
