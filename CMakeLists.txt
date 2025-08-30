@@ -31,6 +31,9 @@ FetchContent_Declare(
         GIT_TAG main
 )
 
+set(BENCHMARK_ENABLE_TESTING OFF CACHE BOOL "" FORCE)
+set(BENCHMARK_ENABLE_GTEST_TESTS OFF CACHE BOOL "" FORCE)
+
 FetchContent_MakeAvailable(fmt)
 FetchContent_MakeAvailable(google-test)
 FetchContent_MakeAvailable(google-benchmark)
