@@ -10,6 +10,7 @@ file(GLOB_RECURSE SRC src/*)
 file(GLOB_RECURSE INC inc/*)
 
 find_package(Boost)
+
 include(FetchContent)
 
 FetchContent_Declare(
@@ -63,6 +64,15 @@ endif ()
 set(DEBUG_LOG_TESTS_ENABLED ON)
 
 if (DEBUG_LOG_TESTS_ENABLED)
+    include(GoogleTest)
+
+    FILE(GLOB_RECURSE TEST_FILES tests/*.cpp)
+
+    add_executable(DebugLogTests ${TEST_FILES})
+    target_link_libraries(DebugLogTests PRIVATE Debug-Log gtest_main)
+    gtest_discover_tests(DebugLogTests)
+
+
     add_executable(DebugLogBenchmark
             benchmark/log_benchmark.cpp
     )

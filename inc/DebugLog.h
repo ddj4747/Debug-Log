@@ -75,6 +75,8 @@ public:
     }
 #endif
 
+    static void Shutdown();
+
 private:
     enum class DebugLogType_ {
         DEFAULT_DEBUG_LOG,
@@ -90,7 +92,7 @@ private:
     static std::mutex m_mutex;
     static std::ofstream m_fileLogStream;
     static std::ofstream m_fileLogErrorStream;
-    static std::once_flag m_initFlag;
+    static bool          m_initFlag;
 };
 
 #endif // DEBUG_LOG_H

@@ -16,7 +16,7 @@
 std::mutex Debug::m_mutex{};
 std::ofstream Debug::m_fileLogStream{};
 std::ofstream Debug::m_fileLogErrorStream{};
-std::once_flag Debug::m_initFlag{};
+bool Debug::m_initFlag{};
 
 const char* Debug::LogTypeToString(const DebugLogType_ type) {
     switch (type) {
@@ -29,11 +29,13 @@ const char* Debug::LogTypeToString(const DebugLogType_ type) {
 
 void Debug::LogI(const std::string& message, const DebugLogType_ type) {
 #ifndef DISABLE_LOGGING
-    std::call_once(m_initFlag, []() {
-        Init();
-    });
-
     std::lock_guard<std::mutex> lock(m_mutex);
+
+    if (!m_initFlag) {
+        m_initFlag = true;
+        Init();
+    }
+
     const std::string timeStamp = GetTimestamp();
 
 #ifndef DISABLE_LOGGING_STACKTRACE
@@ -54,7 +56,7 @@ void Debug::LogI(const std::string& message, const DebugLogType_ type) {
         fmt::print("{}\n", formatted);
 #endif // !DISABLE_CONSOLE_LOGGING
 #ifndef DISABLE_FILE_LOGGING
-        m_fileLogStream << formatted << '\n';
+        m_fileLogStream << formatted << std::endl;
 #endif // !DISABLE_FILE_LOGGING
         break;
 
@@ -63,8 +65,8 @@ void Debug::LogI(const std::string& message, const DebugLogType_ type) {
         fmt::print(fg(fmt::color::yellow), "{}\n", formatted);
 #endif // !DISABLE_CONSOLE_LOGGING
 #ifndef DISABLE_FILE_LOGGING
-        m_fileLogStream << formatted << '\n';
-        m_fileLogErrorStream << formatted << '\n';
+        m_fileLogStream << formatted << std::endl;
+        m_fileLogErrorStream << formatted << std::endl;
 #endif // !DISABLE_FILE_LOGGING
         break;
 
@@ -73,8 +75,8 @@ void Debug::LogI(const std::string& message, const DebugLogType_ type) {
         fmt::print(fg(fmt::color::red), "{}\n", formatted);
 #endif // !DISABLE_CONSOLE_LOGGING
 #ifndef DISABLE_FILE_LOGGING
-        m_fileLogStream << formatted << '\n';
-        m_fileLogErrorStream << formatted << '\n';
+        m_fileLogStream << formatted << std::endl;
+        m_fileLogErrorStream << formatted << std::endl;
 #endif // !DISABLE_FILE_LOGGING
         break;
     }
@@ -96,6 +98,16 @@ std::string Debug::GetTimestamp() {
     oss << std::put_time(&localTime, "%Y-%m-%d_%H-%M-%S");
     return oss.str();
 }
+
+void Debug::Shutdown() {
+    std::lock_guard<std::mutex> lock(m_mutex);
+    if (m_fileLogStream.is_open()) m_fileLogStream.close();
+    if (m_fileLogErrorStream.is_open()) m_fileLogErrorStream.close();
+
+    std::once_flag initFlag{};
+    m_initFlag = false;
+}
+
 
 void Debug::Init() {
     if (!std::filesystem::is_directory(std::filesystem::path("logs/"))) {
