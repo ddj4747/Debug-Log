@@ -42,6 +42,12 @@ add_library(Debug-Log STATIC ${SRC} ${INC})
 target_include_directories(Debug-Log PUBLIC inc/)
 
 if (Boost_FOUND AND NOT DEBUG_LOG_DISABLE_STACKTRACE)
+    if(APPLE)
+        add_compile_definitions(BOOST_STACKTRACE_GNU_SOURCE_NOT_REQUIRED)
+    elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+        add_compile_definitions(_GNU_SOURCE)
+    endif()
+
     target_link_libraries(Debug-Log PUBLIC Boost::boost fmt::fmt)
 else()
     add_compile_definitions(DISABLE_LOGGING_STACKTRACE)
