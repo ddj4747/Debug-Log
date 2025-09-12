@@ -9,8 +9,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 file(GLOB_RECURSE SRC src/*)
 file(GLOB_RECURSE INC inc/*)
 
-find_package(Boost COMPONENTS stacktrace_basic QUIET)
-
+find_package(Boost)
 include(FetchContent)
 
 FetchContent_Declare(
