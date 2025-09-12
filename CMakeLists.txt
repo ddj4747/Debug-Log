@@ -47,7 +47,7 @@ if (Boost_FOUND AND NOT DEBUG_LOG_DISABLE_STACKTRACE)
         add_compile_definitions(_GNU_SOURCE)
     endif()
 
-    target_link_libraries(Debug-Log PUBLIC Boost::boost fmt::fmt)
+    target_link_libraries(Debug-Log PUBLIC boost::boost fmt::fmt)
 else()
     add_compile_definitions(DISABLE_LOGGING_STACKTRACE)
     target_link_libraries(Debug-Log PUBLIC fmt::fmt)
