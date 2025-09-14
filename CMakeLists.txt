@@ -10,33 +10,19 @@ file(GLOB_RECURSE SRC src/*)
 file(GLOB_RECURSE INC inc/*)
 
 find_package(Boost)
+find_package(fmt)
 
 include(FetchContent)
 
-FetchContent_Declare(
-        google-test
-        GIT_REPOSITORY https://github.com/google/googletest.git
-        GIT_TAG main
-)
+if (NOT fmt_FOUND)
+    FetchContent_Declare(
+            fmt
+            GIT_REPOSITORY https://github.com/fmtlib/fmt.git
+            GIT_TAG        11.2.0
+    )
 
-FetchContent_Declare(
-        fmt
-        GIT_REPOSITORY https://github.com/fmtlib/fmt.git
-        GIT_TAG        11.2.0
-)
-
-FetchContent_Declare(
-        google-benchmark
-        GIT_REPOSITORY https://github.com/google/benchmark.git
-        GIT_TAG main
-)
-
-set(BENCHMARK_ENABLE_TESTING OFF CACHE BOOL "" FORCE)
-set(BENCHMARK_ENABLE_GTEST_TESTS OFF CACHE BOOL "" FORCE)
-
-FetchContent_MakeAvailable(fmt)
-FetchContent_MakeAvailable(google-test)
-FetchContent_MakeAvailable(google-benchmark)
+    FetchContent_MakeAvailable(fmt)
+endif()
 
 add_library(Debug-Log STATIC ${SRC} ${INC})
 target_include_directories(Debug-Log PUBLIC inc/)
@@ -70,9 +56,25 @@ else ()
     endif ()
 endif ()
 
-set(DEBUG_LOG_TESTS_ENABLED ON)
-
 if (DEBUG_LOG_TESTS_ENABLED)
+    FetchContent_Declare(
+            google-test
+            GIT_REPOSITORY https://github.com/google/googletest.git
+            GIT_TAG main
+    )
+    
+    FetchContent_Declare(
+            google-benchmark
+            GIT_REPOSITORY https://github.com/google/benchmark.git
+            GIT_TAG main
+    )
+
+    set(BENCHMARK_ENABLE_TESTING OFF CACHE BOOL "" FORCE)
+    set(BENCHMARK_ENABLE_GTEST_TESTS OFF CACHE BOOL "" FORCE)
+
+    FetchContent_MakeAvailable(google-test)
+    FetchContent_MakeAvailable(google-benchmark)
+    
     include(GoogleTest)
 
     FILE(GLOB_RECURSE TEST_FILES tests/*.cpp)
