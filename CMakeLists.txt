@@ -9,6 +9,8 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 file(GLOB_RECURSE SRC src/*)
 file(GLOB_RECURSE INC inc/*)
 
+add_compile_definitions(FMT_UNICODE=0)
+
 find_package(Boost)
 find_package(fmt)
 
@@ -39,8 +41,6 @@ else()
     add_compile_definitions(DISABLE_LOGGING_STACKTRACE)
     target_link_libraries(Debug-Log PUBLIC fmt::fmt)
 endif()
-
-target_compile_definitions(Debug-Log PUBLIC FMT_UNICODE=0)
 
 if (DEBUG_LOG_DISABLE_LOGGING OR (DEBUG_LOG_DISABLE_CONSOLE_LOGGING AND DEBUG_LOG_DISABLE_FILE_LOGGING))
     add_compile_definitions(
