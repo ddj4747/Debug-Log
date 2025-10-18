@@ -10,8 +10,6 @@
 #include <boost/stacktrace.hpp>
 #endif
 
-#define FMT_UNICODE 0
-
 #include <fmt/color.h>
 #include <fmt/ostream.h>
 
