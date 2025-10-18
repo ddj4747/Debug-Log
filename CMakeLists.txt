@@ -40,6 +40,8 @@ else()
     target_link_libraries(Debug-Log PUBLIC fmt::fmt)
 endif()
 
+add_compile_definitions(FMT_UNICODE 0)
+
 if (DEBUG_LOG_DISABLE_LOGGING OR (DEBUG_LOG_DISABLE_CONSOLE_LOGGING AND DEBUG_LOG_DISABLE_FILE_LOGGING))
     add_compile_definitions(
             DISABLE_LOGGING
