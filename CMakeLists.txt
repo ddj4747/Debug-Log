@@ -27,7 +27,7 @@ if (NOT fmt_FOUND)
 endif()
 
 add_library(Debug-Log STATIC ${SRC} ${INC})
-target_include_directories(Debug-Log PUBLIC inc/)
+target_include_directories(Debug-Log PUBLIC ${CMAKE_SOURCE_DIR}/inc/)
 
 if (Boost_FOUND AND NOT DEBUG_LOG_DISABLE_STACKTRACE)
     if(APPLE)
