@@ -29,7 +29,7 @@ endif()
 
 add_library(Debug-Log STATIC ${SRC} ${INC} ${EXT_SRC})
 target_include_directories(Debug-Log PUBLIC inc/)
-target_include_directories(Debug-Log PRIVATE external/)
+target_include_directories(Debug-Log PUBLIC external/)
 
 if (Boost_FOUND AND NOT DEBUG_LOG_DISABLE_STACKTRACE)
     if(APPLE)
