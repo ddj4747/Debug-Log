@@ -54,7 +54,6 @@ compile_commands.json
 *.trace
 *.gch
 *.pch
-*.core
 core.*
 vgcore.*
 *.stackdump
