@@ -8,6 +8,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 file(GLOB_RECURSE SRC src/*)
 file(GLOB_RECURSE INC inc/*)
+file(GLOB_RECURSE EXT_SRC external/*)
 
 add_compile_definitions(FMT_UNICODE=0)
 
@@ -26,7 +27,7 @@ if (NOT fmt_FOUND)
     FetchContent_MakeAvailable(fmt)
 endif()
 
-add_library(Debug-Log STATIC ${SRC} ${INC})
+add_library(Debug-Log STATIC ${SRC} ${INC} ${EXT_SRC})
 target_include_directories(Debug-Log PUBLIC inc/)
 target_include_directories(Debug-Log PRIVATE external/)
 
