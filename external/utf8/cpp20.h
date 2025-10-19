@@ -28,7 +28,7 @@ DEALINGS IN THE SOFTWARE.
 #ifndef UTF8_FOR_CPP_207e906c01_03a3_4daf_b420_ea7ea952b3c9
 #define UTF8_FOR_CPP_207e906c01_03a3_4daf_b420_ea7ea952b3c9
 
-#include <utf8/cpp17.h>
+#include "cpp17.h"
 
 namespace utf8
 {
