@@ -12,6 +12,12 @@
 
 #include <fmt/color.h>
 #include <fmt/ostream.h>
+#include <utf8.h>
+
+inline std::string sanitizeUtf8(const std::string& str) {
+    if (utf8::is_valid(str)) return str;
+    return utf8::replace_invalid(str, U'\uFFFD');
+}
 
 std::mutex Debug::m_mutex{};
 std::ofstream Debug::m_fileLogStream{};
@@ -53,7 +59,7 @@ void Debug::LogI(const std::string& message, const DebugLogType_ type) {
     switch (type) {
     case DebugLogType_::DEFAULT_DEBUG_LOG:
 #ifndef DISABLE_CONSOLE_LOGGING
-        fmt::print("{}\n", fmt::string_view(formatted.data(), formatted.size()));
+        fmt::print("{}\n", sanitizeUtf8(formatted));
 #endif // !DISABLE_CONSOLE_LOGGING
 #ifndef DISABLE_FILE_LOGGING
         m_fileLogStream << formatted << std::endl;
@@ -62,7 +68,7 @@ void Debug::LogI(const std::string& message, const DebugLogType_ type) {
 
     case DebugLogType_::WARNING_DEBUG_LOG:
 #ifndef DISABLE_CONSOLE_LOGGING
-        fmt::print(fg(fmt::color::yellow), "{}\n", fmt::string_view(formatted.data(), formatted.size()));
+        fmt::print(fg(fmt::color::yellow), "{}\n", sanitizeUtf8(formatted));
 #endif // !DISABLE_CONSOLE_LOGGING
 #ifndef DISABLE_FILE_LOGGING
         m_fileLogStream << formatted << std::endl;
@@ -72,7 +78,7 @@ void Debug::LogI(const std::string& message, const DebugLogType_ type) {
 
     case DebugLogType_::ERROR_DEBUG_LOG:
 #ifndef DISABLE_CONSOLE_LOGGING
-        fmt::print(fg(fmt::color::red), "{}\n", fmt::string_view(formatted.data(), formatted.size()));
+        fmt::print(fg(fmt::color::red), "{}\n", sanitizeUtf8(formatted));
 #endif // !DISABLE_CONSOLE_LOGGING
 #ifndef DISABLE_FILE_LOGGING
         m_fileLogStream << formatted << std::endl;
