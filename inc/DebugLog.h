@@ -9,6 +9,7 @@
 #include <type_traits>
 #include <fmt/core.h>
 #include <string_view>
+#include <filesystem>
 
 #ifndef NO_DISCARD
 #define NO_DISCARD [[nodiscard]]
@@ -16,6 +17,12 @@
 
 class Debug {
 public:
+    struct Settings {
+        std::filesystem::path rootPath;
+        size_t                maxFileSize;
+        size_t                maxLogFilesAmount;
+        size_t                deleteLogsAfter;
+    };
 
     static void Log(const std::string_view value) {
         LogI(std::string(value), DebugLogType_::DEFAULT_DEBUG_LOG);
@@ -75,7 +82,7 @@ public:
     }
 #endif
 
-    static void SetRootPath(std::string_view path);
+    static void SetSettings(const Settings& settings);
     static void Shutdown();
 
 private:
@@ -88,13 +95,17 @@ private:
     static const char* LogTypeToString(DebugLogType_ type);
     static void LogI(const std::string& message, DebugLogType_ type);
     static void Init();
+    static void ClearLogs(const std::filesystem::path& rootPath);
     static std::string GetTimestamp();
+    static std::chrono::time_point<std::chrono::system_clock> ParseTimestamp(std::string_view str);
 
-    static std::mutex m_mutex;
+    static std::mutex    m_mutex;
     static std::ofstream m_fileLogStream;
     static std::ofstream m_fileLogErrorStream;
+    static size_t        m_currentLogStreamFileSize;
+    static size_t        m_currentLogErrorStreamFileSize;
     static bool          m_initFlag;
-    static std::string   m_rootPath;
+    static Settings      m_settings;
 };
 
 #endif // DEBUG_LOG_H

@@ -25,6 +25,7 @@ $ cmake --build .
 ## 📌 Dependencies
 
 - [fmt](https://github.com/fmtlib/fmt) for formatted and colored console output
+- [boost stacktrace](https://github.com/boostorg/stacktrace) for debug stacktrace inside console
 
 ## 🚀 Usage
 
