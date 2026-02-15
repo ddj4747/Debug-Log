@@ -75,6 +75,7 @@ public:
     }
 #endif
 
+    static void SetRootPath(std::string_view path);
     static void Shutdown();
 
 private:
@@ -93,6 +94,7 @@ private:
     static std::ofstream m_fileLogStream;
     static std::ofstream m_fileLogErrorStream;
     static bool          m_initFlag;
+    static std::string   m_rootPath;
 };
 
 #endif // DEBUG_LOG_H

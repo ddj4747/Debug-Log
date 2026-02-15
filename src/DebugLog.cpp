@@ -23,6 +23,7 @@ std::mutex Debug::m_mutex{};
 std::ofstream Debug::m_fileLogStream{};
 std::ofstream Debug::m_fileLogErrorStream{};
 bool Debug::m_initFlag{};
+std::string Debug::m_rootPath{};
 
 const char* Debug::LogTypeToString(const DebugLogType_ type) {
     switch (type) {
@@ -105,12 +106,22 @@ std::string Debug::GetTimestamp() {
     return oss.str();
 }
 
+void Debug::SetRootPath(const std::string_view path) {
+    std::lock_guard<std::mutex> lock(m_mutex);
+
+    m_rootPath = path;
+    if (m_fileLogStream.is_open() || m_fileLogErrorStream.is_open()) {
+        Shutdown();
+    }
+
+    m_initFlag = true;
+    Init();
+}
+
 void Debug::Shutdown() {
     std::lock_guard<std::mutex> lock(m_mutex);
     if (m_fileLogStream.is_open()) m_fileLogStream.close();
     if (m_fileLogErrorStream.is_open()) m_fileLogErrorStream.close();
-
-    std::once_flag initFlag{};
     m_initFlag = false;
 }
 
@@ -120,17 +131,17 @@ void Debug::Init() {
         std::filesystem::create_directory(std::filesystem::path("logs/"));
     }
 
-    if (!std::filesystem::is_directory(std::filesystem::path("logs/all/"))) {
-        std::filesystem::create_directory(std::filesystem::path("logs/all/"));
+    if (!std::filesystem::is_directory(std::filesystem::path(m_rootPath + "logs/all/"))) {
+        std::filesystem::create_directory(std::filesystem::path(m_rootPath + "logs/all/"));
     }
 
-    if (!std::filesystem::is_directory(std::filesystem::path("logs/errors"))) {
-        std::filesystem::create_directory(std::filesystem::path("logs/errors"));
+    if (!std::filesystem::is_directory(std::filesystem::path(m_rootPath + "logs/errors"))) {
+        std::filesystem::create_directory(std::filesystem::path(m_rootPath + "logs/errors"));
     }
 
     const std::string fileName = GetTimestamp() + ".log";
-    const std::filesystem::path allLogPath("logs/all/" + fileName);
-    const std::filesystem::path errorLogPath("logs/errors/" + fileName);
+    const std::filesystem::path allLogPath(m_rootPath + "logs/all/" + fileName);
+    const std::filesystem::path errorLogPath(m_rootPath + "logs/errors/" + fileName);
 
     m_fileLogStream.open(allLogPath, std::ios::out | std::ios::app);
     m_fileLogErrorStream.open(errorLogPath, std::ios::out | std::ios::app);
