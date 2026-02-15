@@ -5,6 +5,9 @@
 #include <iomanip>
 #include <sstream>
 #include <ctime>
+#include <queue>
+
+#include "fmt/os.h"
 
 #ifndef DISABLE_LOGGING_STACKTRACE
 #include <boost/stacktrace.hpp>
@@ -23,7 +26,14 @@ std::mutex Debug::m_mutex{};
 std::ofstream Debug::m_fileLogStream{};
 std::ofstream Debug::m_fileLogErrorStream{};
 bool Debug::m_initFlag{};
-std::string Debug::m_rootPath{};
+Debug::Settings Debug::m_settings{
+    "",
+    2 * 1024 * 1024,
+    10,
+    60 * 60 * 24 * 7
+};
+size_t Debug::m_currentLogStreamFileSize{};
+size_t Debug::m_currentLogErrorStreamFileSize{};
 
 const char* Debug::LogTypeToString(const DebugLogType_ type) {
     switch (type) {
@@ -36,57 +46,74 @@ const char* Debug::LogTypeToString(const DebugLogType_ type) {
 
 void Debug::LogI(const std::string& message, const DebugLogType_ type) {
 #ifndef DISABLE_LOGGING
-    std::lock_guard<std::mutex> lock(m_mutex);
+    {
+        std::lock_guard<std::mutex> lock(m_mutex);
 
-    if (!m_initFlag) {
-        m_initFlag = true;
-        Init();
-    }
+        if (!m_initFlag) {
+            m_initFlag = true;
+            Init();
+        }
 
-    const std::string timeStamp = GetTimestamp();
+        const std::string timeStamp = GetTimestamp();
 
 #ifndef DISABLE_LOGGING_STACKTRACE
-    std::string formatted;
-    if (type != DebugLogType_::DEFAULT_DEBUG_LOG) {
-        const boost::stacktrace::stacktrace stacktrace(4, -1);
-        formatted = fmt::format("[{:<8}{}] {}\nStacktrace ( \n{})", LogTypeToString(type), timeStamp, message,  boost::stacktrace::to_string(stacktrace));
-    } else {
-        formatted = fmt::format("[{:<8}{}] {}", LogTypeToString(type), timeStamp, message);
-    }
+        std::string formatted;
+        if (type != DebugLogType_::DEFAULT_DEBUG_LOG) {
+            const boost::stacktrace::stacktrace stacktrace(4, -1);
+            formatted = fmt::format("[{:<8}{}] {}\nStacktrace ( \n{})", LogTypeToString(type), timeStamp, message,  boost::stacktrace::to_string(stacktrace));
+        } else {
+            formatted = fmt::format("[{:<8}{}] {}", LogTypeToString(type), timeStamp, message);
+        }
 #else
-    const std::string formatted = fmt::format("[{:<8}{}] {}", LogTypeToString(type), timeStamp, message);
+        const std::string formatted = fmt::format("[{:<8}{}] {}", LogTypeToString(type), timeStamp, message);
 #endif
-
-    switch (type) {
-    case DebugLogType_::DEFAULT_DEBUG_LOG:
+        switch (type) {
+        case DebugLogType_::DEFAULT_DEBUG_LOG:
 #ifndef DISABLE_CONSOLE_LOGGING
-        fmt::print("{}\n", sanitizeUtf8(formatted));
+            fmt::print("{}\n", sanitizeUtf8(formatted));
 #endif // !DISABLE_CONSOLE_LOGGING
 #ifndef DISABLE_FILE_LOGGING
-        m_fileLogStream << formatted << std::endl;
+            m_currentLogStreamFileSize += formatted.size() + 1;
+            m_fileLogStream << formatted << std::endl;
 #endif // !DISABLE_FILE_LOGGING
-        break;
+            break;
 
-    case DebugLogType_::WARNING_DEBUG_LOG:
+        case DebugLogType_::WARNING_DEBUG_LOG:
 #ifndef DISABLE_CONSOLE_LOGGING
-        fmt::print(fg(fmt::color::yellow), "{}\n", sanitizeUtf8(formatted));
+            fmt::print(fg(fmt::color::yellow), "{}\n", sanitizeUtf8(formatted));
 #endif // !DISABLE_CONSOLE_LOGGING
 #ifndef DISABLE_FILE_LOGGING
-        m_fileLogStream << formatted << std::endl;
-        m_fileLogErrorStream << formatted << std::endl;
+            m_currentLogStreamFileSize += formatted.size() + 1;
+            m_currentLogErrorStreamFileSize += formatted.size() + 1;
+            m_fileLogStream << formatted << std::endl;
+            m_fileLogErrorStream << formatted << std::endl;
 #endif // !DISABLE_FILE_LOGGING
-        break;
+            break;
 
-    case DebugLogType_::ERROR_DEBUG_LOG:
+        case DebugLogType_::ERROR_DEBUG_LOG:
 #ifndef DISABLE_CONSOLE_LOGGING
-        fmt::print(fg(fmt::color::red), "{}\n", sanitizeUtf8(formatted));
+            fmt::print(fg(fmt::color::red), "{}\n", sanitizeUtf8(formatted));
 #endif // !DISABLE_CONSOLE_LOGGING
 #ifndef DISABLE_FILE_LOGGING
-        m_fileLogStream << formatted << std::endl;
-        m_fileLogErrorStream << formatted << std::endl;
+            m_currentLogStreamFileSize += formatted.size() + 1;
+            m_currentLogErrorStreamFileSize += formatted.size() + 1;
+            m_fileLogStream << formatted << std::endl;
+            m_fileLogErrorStream << formatted << std::endl;
 #endif // !DISABLE_FILE_LOGGING
-        break;
+            break;
+        }
+
+#ifndef DISABLE_FILE_LOGGING
+        if (m_currentLogStreamFileSize < m_settings.maxFileSize && m_currentLogErrorStreamFileSize < m_settings.maxFileSize) {
+            return;
+        }
+#endif // !DISABLE_FILE_LOGGING
     }
+
+#ifndef DISABLE_FILE_LOGGING
+    Shutdown();
+#endif // !DISABLE_FILE_LOGGING
+
 #endif // !DISABLE_LOGGING
 }
 
@@ -106,10 +133,22 @@ std::string Debug::GetTimestamp() {
     return oss.str();
 }
 
-void Debug::SetRootPath(const std::string_view path) {
+std::chrono::time_point<std::chrono::system_clock> Debug::ParseTimestamp(const std::string_view str) {
+    std::tm tm{};
+    std::istringstream iss((str.data()));
+    iss >> std::get_time(&tm, "%Y-%m-%d_%H-%M-%S");
+
+    if (iss.fail())
+        throw std::runtime_error("Invalid timestamp format");
+
+    const std::time_t tt = std::mktime(&tm);
+    return std::chrono::system_clock::from_time_t(tt);
+}
+
+void Debug::SetSettings(const Settings& settings) {
     std::lock_guard<std::mutex> lock(m_mutex);
 
-    m_rootPath = path;
+    m_settings = settings;
     if (m_fileLogStream.is_open() || m_fileLogErrorStream.is_open()) {
         Shutdown();
     }
@@ -131,22 +170,58 @@ void Debug::Init() {
         std::filesystem::create_directory(std::filesystem::path("logs/"));
     }
 
-    if (!std::filesystem::is_directory(std::filesystem::path(m_rootPath + "logs/all/"))) {
-        std::filesystem::create_directory(std::filesystem::path(m_rootPath + "logs/all/"));
-    }
+    const std::filesystem::path allLogsRoot = std::filesystem::path(m_settings.rootPath / "logs/all/");
+    const std::filesystem::path errorLogsRoot = std::filesystem::path(m_settings.rootPath / "logs/errors/");
 
-    if (!std::filesystem::is_directory(std::filesystem::path(m_rootPath + "logs/errors"))) {
-        std::filesystem::create_directory(std::filesystem::path(m_rootPath + "logs/errors"));
-    }
+    std::filesystem::create_directories(allLogsRoot);
+    std::filesystem::create_directories(errorLogsRoot);
 
     const std::string fileName = GetTimestamp() + ".log";
-    const std::filesystem::path allLogPath(m_rootPath + "logs/all/" + fileName);
-    const std::filesystem::path errorLogPath(m_rootPath + "logs/errors/" + fileName);
+    const std::filesystem::path allLogPath(allLogsRoot / fileName);
+    const std::filesystem::path errorLogPath(errorLogsRoot / fileName);
 
     m_fileLogStream.open(allLogPath, std::ios::out | std::ios::app);
     m_fileLogErrorStream.open(errorLogPath, std::ios::out | std::ios::app);
 
+    ClearLogs(allLogsRoot);
+    ClearLogs(errorLogsRoot);
+
     if (!m_fileLogStream.is_open() || !m_fileLogErrorStream.is_open()) {
         throw std::runtime_error("Failed to open log files.");
+    }
+}
+
+void Debug::ClearLogs(const std::filesystem::path& rootPath) {
+    std::priority_queue<
+        std::pair<std::chrono::time_point<std::chrono::system_clock>, std::string>,
+        std::vector<std::pair<std::chrono::system_clock::time_point, std::string>>,
+        std::greater<>
+    > logFilesNames;
+    const std::chrono::time_point<std::chrono::system_clock> now = std::chrono::system_clock::now();
+
+    for (const auto& file : std::filesystem::directory_iterator(rootPath)) {
+        if (!file.is_regular_file())
+            continue;
+
+        if (file.path().extension() != ".log")
+            continue;
+
+        try {
+            std::string fileName = file.path().filename().string();
+            std::chrono::time_point<std::chrono::system_clock> timestamp = ParseTimestamp(fileName.substr(0, fileName.size()-4));
+
+            auto diff = std::chrono::duration_cast<std::chrono::seconds>(now - timestamp);
+            if (diff.count() > m_settings.deleteLogsAfter) {
+                std::filesystem::remove(file);
+                continue;
+            }
+
+            logFilesNames.emplace(timestamp, fileName);
+        }  catch (...) { }
+    }
+
+    while (logFilesNames.size() > m_settings.maxLogFilesAmount) {
+        std::filesystem::remove(rootPath / logFilesNames.top().second);
+        logFilesNames.pop();
     }
 }

@@ -26,8 +26,6 @@ logs/
 
 Each run creates a new log file named with the current timestamp (e.g., `2025-06-24_12-34-56.log`).
 
----
-
 ## 📝 Logging Functions
 
 Debug-Log uses the `{fmt}` library for printf-style formatting.
@@ -129,6 +127,21 @@ Stacktrace (
 ```
 
 ---
+
+## 🔧 Logger Configuration
+
+### Logger behavior can be customized via:
+``` cpp
+Debug::SetSettings(const Debug::Settings& settings);
+```
+### Available Options
+
+| Option            | Description                                                                                                 |
+|-------------------|-------------------------------------------------------------------------------------------------------------|
+| rootPath          | Directory where log files are stored. If it does not exist, it will be created automatically.               |
+| maxFileSize       | Maximum size (in bytes) of a single .log file. When exceeded, a new log file is created.                    |
+| maxLogFilesAmount | Maximum number of log files retained in rootPath. When the limit is exceeded, the oldest files are removed. |
+| deleteLogsAfter   | Maximum lifetime (in seconds) of a log file. Files older than this value are automatically deleted.         |
 
 ## ⚙️ CMake Configuration
 
